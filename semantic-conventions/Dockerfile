@@ -1,10 +1,13 @@
-FROM python:3.9.5-alpine3.12
+FROM python:3.9.5-alpine3.12 as build
 LABEL maintainer="The OpenTelemetry Authors"
-ADD *.whl /semconvgen/
 WORKDIR /semconvgen
-RUN rm -f README.md
-RUN apk --update add --virtual build-dependencies build-base \
-  && pip install -U ./semconvgen-*.whl \
-  && apk del build-dependencies \
-  && rm *.whl
+COPY . .
+RUN apk --update add --virtual build-dependencies build-base
+RUN pip install -U pip setuptools wheel
+RUN pip wheel --no-deps . --wheel-dir .
+
+FROM python:3.9.5-alpine3.12
+WORKDIR /semconvgen
+COPY --from=build /semconvgen/*.whl .
+RUN pip install *.whl && rm -rf /semconvgen/*.whl
 ENTRYPOINT ["gen-semconv"]

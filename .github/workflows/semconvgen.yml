@@ -46,11 +46,6 @@ jobs:
     needs: tests
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-    - name: Build the wheel
-      run: |
-       pip install -U pip setuptools wheel
-       pip wheel --no-deps ./semantic-conventions/ --wheel-dir semantic-conventions/
     - name: Build the Docker image
       run: docker build semantic-conventions/. -t semconvgen
     - name: Push the Docker image
