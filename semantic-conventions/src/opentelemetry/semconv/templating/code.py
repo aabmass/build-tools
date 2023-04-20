@@ -188,6 +188,7 @@ class CodeRenderer:
             "template": template_path,
             "semconvs": semconvset.models,
             "attributes": semconvset.attributes(),
+            "models": semconvset.models,
         }
         data.update(self.parameters)
         return data
