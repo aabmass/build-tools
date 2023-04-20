@@ -1,0 +1,35 @@
+{%- macro metric_kind(model) %}
+  {%- if model.instrument in ("counter", "histogram") -%}
+    CUMULATIVE
+  {%- else -%}
+    GAUGE
+  {%- endif -%}
+{%- endmacro %}
+
+{%- macro value_type(model) %}
+  {%- if model.instrument == "histogram" -%}
+    DISTRIBUTION
+  {%- else -%}
+    DOUBLE
+  {%- endif -%}
+{%- endmacro %}
+
+{%- for id, model in models.items() if model.GROUP_TYPE_NAME == "metric" -%}
+resource "google_monitoring_metric_descriptor" "{{model.metric_name | replace('.', '_')}}" {
+  description = "{{model.brief}}"
+  type = "workload.googleapis.com/{{model.metric_name}}"
+  metric_kind = "{{ metric_kind(model) }}"
+  value_type = "{{ value_type(model) }}"
+  unit = "{{model.unit}}"
+  display_name = "{{model.metric_name}} (OpenTelemetry)"
+
+  {% for attribute in model.attributes %}
+  labels {
+    key = "{{attribute.fqn | replace('.', '_')}}"
+    value_type = "STRING"
+    description = {{attribute.brief | tojson}}
+  }
+  {% endfor %}
+}
+
+{% endfor %}
